@@ -163,3 +163,4 @@ cython_debug/
 
 # Custom additional
 big.txt
+.DS_Store
