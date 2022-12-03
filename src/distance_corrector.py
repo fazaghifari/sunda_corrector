@@ -53,20 +53,28 @@ def correction(word, corpus, n_return=1, threshold=0.85, include_score=False):
     else:
         # Filter candidates that have score more than or equal to threshold
         filtered = [(txt,score) for txt,score,_ in cand if score >= threshold]
-        if len(filtered) <= n_return:
-            # If number of suggested correction is less than the number of n_return
-            # return as it is
+        if len(filtered) == 0:
+            # if no suggestion pass threshold
+            # return the original word
             if include_score:
-                res = filtered
+                res = [(word,0)]
             else:
-                res = [txt for txt,_ in filtered]
+                res = [word]
         else:
-            # If number of suggested correction larger than number of n_return
-            # Trim the list
-            if include_score:
-                res = filtered[:n_return]
+            if len(filtered) <= n_return:
+                # If number of suggested correction is less than the number of n_return
+                # return as it is
+                if include_score:
+                    res = filtered
+                else:
+                    res = [txt for txt,_ in filtered]
             else:
-                res = [txt for txt,_ in filtered][:n_return]
+                # If number of suggested correction larger than number of n_return
+                # Trim the list
+                if include_score:
+                    res = filtered[:n_return]
+                else:
+                    res = [txt for txt,_ in filtered][:n_return]
     
     return res
 
