@@ -1,0 +1,2 @@
+rapidfuzz==2.13.2
+python-Levenshtein==0.20.8
