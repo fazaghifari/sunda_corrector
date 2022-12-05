@@ -154,6 +154,8 @@ def typoDistance(s, t, layout='QWERTY'):
 def normalized_edit_similarity(s, t, layout='QWERTY'):
     # d : edit distance between the two strings
     # m : length of the shorter string
+    # Still flawed, the norm similarity between "hale" and "hafe" is more than 1
+    # Probably the formulation is incorrect
     d = typoDistance(s, t, layout=layout)
     m = min([len(s),len(t)])
     return ( 1.0 / math.exp( d / (m - d) ) )
