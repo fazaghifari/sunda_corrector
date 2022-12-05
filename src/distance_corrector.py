@@ -1,4 +1,5 @@
 from simple_corrector import words_loader
+from typo_distance import typoDistance
 from rapidfuzz import process
 import rapidfuzz
 
@@ -23,7 +24,7 @@ def return_nearest(word, corpus, n=10,
                             scorer=scorer)
     return nearest
 
-def correction(word, corpus, n_return=1, threshold=0.85, include_score=False):
+def correction(word, corpus, n_return=1, threshold=0.85, include_score=False, typo_dist=False):
     """
     Wrapper for returning correction candidates.
     n_return = 1 means only highest probability word is returned 
@@ -43,13 +44,26 @@ def correction(word, corpus, n_return=1, threshold=0.85, include_score=False):
 
     candidates = return_nearest(word, corpus)
     cand = sorted(candidates, key= lambda x:x[1], reverse=True) # sort candidates based on score
+    if typo_dist:
+        typo_sim_cand = [(txt,typoDistance(word,txt),score) for txt,score,_ in cand]
+        
+        # Sort candidates based on typo Distance
+        # Lower distance is better
+        cand = sorted(typo_sim_cand, key= lambda x:x[1], reverse=False) 
+
     if n_return == 1:
         # if n_return is 1, then return word with highest score
         if cand[0][1] >= threshold:
-            res = cand[0][0]
+            if include_score:
+                res = [(cand[0][0],cand[0][1])]
+            else:
+                res = cand[0][0]
         else:
             # If no candidates have score more than threshold return original word
-            res = word
+            if include_score:
+                res = [(word, 0)]
+            else:
+                res = word
     else:
         # Filter candidates that have score more than or equal to threshold
         filtered = [(txt,score) for txt,score,_ in cand if score >= threshold]
@@ -83,4 +97,4 @@ def correction(word, corpus, n_return=1, threshold=0.85, include_score=False):
 if __name__ == "__main__":
     PATH = "data/big.txt"
     WORDS = words_loader(PATH)
-    print(correction("barcket",WORDS, 1, 0.7, include_score=False))
+    print(correction("hafe",WORDS, 1, 0.7, include_score=False, typo_dist=True))
