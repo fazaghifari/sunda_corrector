@@ -1,5 +1,7 @@
 # Original typo_distance from wsong's github
 # original source: https://github.com/wsong/Typo-Distance
+# TO DO add normalized edit similarity: https://stackoverflow.com/questions/64113621/how-to-normalize-levenshtein-distance-between-0-to-1
+import math
 
 SHIFT_COST = 3.0
 INSERTION_COST = 1.0
@@ -88,7 +90,7 @@ def euclideanKeyboardDistance(c1, c2):
 def insertionCost(s, i, c):
     if not s or i >= len(s):
         return INSERTION_COST
-    cost = INSERTION_COST
+    cost = 0  # Edited initial cost = 0, instead of the global value of insertion cost 
     if arrayForChar(s[i]) != arrayForChar(c):
         # We weren't holding down the shift key when we were typing the original
         # string, but started holding it down while inserting this character, or
@@ -103,7 +105,7 @@ def deletionCost(s, i):
 
 # The cost of substituting c at position i in string s
 def substitutionCost(s, i, c):
-    cost = SUBSTITUTION_COST
+    cost = 0  # Edited initial cost = 0, instead of the global value of substitution cost
     if len(s) == 0 or i >= len(s):
         return INSERTION_COST
     if arrayForChar(s[i]) != arrayForChar(c):
@@ -149,6 +151,13 @@ def typoDistance(s, t, layout='QWERTY'):
 
     return d[len(s)][len(t)]
 
+def normalized_edit_similarity(s, t, layout='QWERTY'):
+    # d : edit distance between the two strings
+    # m : length of the shorter string
+    d = typoDistance(s, t, layout=layout)
+    m = min([len(s),len(t)])
+    return ( 1.0 / math.exp( d / (m - d) ) )
+    
 # Returns a list of the possible actions than can be performed on a string s.
 def getPossibleActions(s, layout='QWERTY'):
     if layout in layoutDict:
