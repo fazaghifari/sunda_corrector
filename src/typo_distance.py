@@ -4,8 +4,8 @@
 import math
 
 SHIFT_COST = 3.0
-INSERTION_COST = 1.0
-DELETION_COST = 1.0
+INSERTION_COST = 2.0
+DELETION_COST = 2.0
 SUBSTITUTION_COST = 1.0
 
 qwertyKeyboardArray = [
