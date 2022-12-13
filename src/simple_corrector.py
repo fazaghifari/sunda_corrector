@@ -55,7 +55,7 @@ def correct_sentence(sentence):
     # Join the corrected words into a sentence
     corrected_sentence = ' '.join(corrected_words)
     
-    return corrected_sentence# Create the app
+    return corrected_sentence
 
 if __name__ == "__main__":
     PATH = "data/Sundanese.txt"
