@@ -1,7 +1,9 @@
 from simple_corrector import words_loader
-from typo_distance import typoDistance
+from typo_distance import typoDistance, normalized_edit_similarity
 from rapidfuzz import process
 import rapidfuzz
+import joblib
+import re
 
 def return_nearest(word, corpus, n=10, 
                     scorer=rapidfuzz.distance.DamerauLevenshtein.normalized_similarity):
@@ -45,11 +47,10 @@ def correction(word, corpus, n_return=1, threshold=0.85, include_score=False, ty
     candidates = return_nearest(word, corpus)
     cand = sorted(candidates, key= lambda x:x[1], reverse=True) # sort candidates based on score
     if typo_dist:
-        typo_sim_cand = [(txt,typoDistance(word,txt),score) for txt,score,_ in cand]
+        typo_sim_cand = [(txt,normalized_edit_similarity(word,txt),score) for txt,score,_ in cand]
         
-        # Sort candidates based on typo Distance
-        # Lower distance is better
-        cand = sorted(typo_sim_cand, key= lambda x:x[1], reverse=False) 
+        # Sort candidates based on typo Similarities
+        cand = sorted(typo_sim_cand, key= lambda x:x[1], reverse=True) 
 
     if n_return == 1:
         # if n_return is 1, then return word with highest score
@@ -92,9 +93,45 @@ def correction(word, corpus, n_return=1, threshold=0.85, include_score=False, ty
     
     return res
 
+    # Create a function allowing the app to receive Sentences as input
+def correct_sentence(sentence, VOCAB, params, ngrams=3, lm=None):
+    # Split the sentence into words
+    words = re.findall(r'\b[\w\']+\b', sentence)
+    
+    # Correct the spelling of each word
+    corrected_words = []
+    for i,word in enumerate(words):
+        corrected_word = correction(word, VOCAB, params['n_candidate'], 
+                        params['threshold'], include_score=True, typo_dist=params['typo_dist'])
+        if lm is None:
+            corrected_words.append(corrected_word[0][0])
+        else:
+            if i == 0:
+                prior_text = ["<s>"]
+            elif i < ngrams:
+                prior_text = corrected_words[:i]
+            else:
+                prior_text = corrected_words[i-3:i]
 
+            new_score = [(word[0],lm.score(word[0], prior_text)*word[1]) for word in corrected_word]
+            cand = sorted(new_score, key= lambda x:x[1], reverse=True)
+            corrected_words.append(cand[0][0]) 
+    
+    # Join the corrected words into a sentence
+    corrected_sentence = ' '.join(corrected_words)
+    
+    return corrected_sentence
 
 if __name__ == "__main__":
     PATH = "data/big.txt"
     WORDS = words_loader(PATH)
-    print(correction("hafe",WORDS, 1, 0.7, include_score=False, typo_dist=True))
+    lm = joblib.load("data/lm_english.pkl")
+    params = {
+        "n_candidate":3,
+        "threshold":0.7,
+        "typo_dist":True 
+        }
+
+    # print(correction("hafe",WORDS, 3, 0.7, include_score=True, typo_dist=False))
+    a = correct_sentence("i habe seen the pokixe", VOCAB=WORDS, params=params, lm=lm)
+    print(a)
