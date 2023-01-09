@@ -17,7 +17,7 @@ qwertyKeyboardArray = [
     ]
 
 qwertyShiftedKeyboardArray = [
-    ['~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '+'],
+    ['~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')','_','+'],
     ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '|'],
     ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"'],
     ['Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?'],
@@ -154,12 +154,19 @@ def typoDistance(s, t, layout='QWERTY'):
 def normalized_edit_similarity(s, t, layout='QWERTY'):
     # d : edit distance between the two strings
     # m : length of the shorter string
+    # ---- previous version
     # Still flawed, the norm similarity between "hale" and "hafe" is more than 1
     # Probably the formulation is incorrect
+    # d = typoDistance(s, t, layout=layout)
+    # m = min([len(s),len(t)])
+    # return ( 1.0 / math.exp( d / (m - d) ) )
+    # ---- Current version
+    # based on the 3rd approach 
+    # https://stackoverflow.com/questions/41066394/difference-in-normalization-of-levenshtein-edit-distance
+
     d = typoDistance(s, t, layout=layout)
-    m = min([len(s),len(t)])
-    return ( 1.0 / math.exp( d / (m - d) ) )
-    
+    return 1 - (d*2)/((len(s)+len(t))*3)
+
 # Returns a list of the possible actions than can be performed on a string s.
 def getPossibleActions(s, layout='QWERTY'):
     if layout in layoutDict:
